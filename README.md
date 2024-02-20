@@ -2,6 +2,9 @@
 
 This is a simplistic (read: extremely hacky) ear trainer I put together mostly for my own purposes.
 
+### [Try it yourself here](https://notalkonlyprox.github.io/NoteByNote/challenge_b.html)
+
+### Overview
 If you're here looking for good code, go away.
 Everything here is motivated by getting it done with the least amount of effort possible.
 
