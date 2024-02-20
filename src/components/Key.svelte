@@ -1,3 +1,4 @@
+<!-- This is a modified version of https://github.com/danferns/svelte-piano by Daniel Fernandes (MIT license) -->
 <script>
     export let noteNum;
     export let keyWidth = 56;
