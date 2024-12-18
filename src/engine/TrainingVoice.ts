@@ -1,6 +1,7 @@
 import { TrainingVoices } from "./TrainingVoices";
 import { TrainingSession } from "./TraningSession";
 import { Soundfont } from "smplr";
+import {NBN_VOLUME_ADJUSTMENTS}  from "./FontCustomizations";
 
 type VoiceNote = {
     timer? : ReturnType<typeof setTimeout>;
@@ -126,7 +127,14 @@ export class TrainingVoice {
         this.instrument = instrument;
         await this.stopAll();
         if (this.session.ctx) {
-            this.sfz = await new Soundfont(this.session.ctx, {instrument}).load;
+            let config = TrainingVoices.getInstrumentConfig(instrument);
+            this.sfz = await new Soundfont(this.session.ctx, config).load;
+        }
+
+        if (instrument in NBN_VOLUME_ADJUSTMENTS) {
+            this.setVolumeAdjustment(NBN_VOLUME_ADJUSTMENTS[instrument]);
+        } else {
+            this.setVolumeAdjustment(1.0);
         }
     }
 

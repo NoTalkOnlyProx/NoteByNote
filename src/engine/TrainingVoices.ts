@@ -13,6 +13,7 @@ woodblock
 1 oct: rock_organ
 fx_*,
  */
+import {NBN_CUSTOM_FONTS} from "src/engine/FontCustomizations";
 import {getSoundfontNames as getSmplrFonts} from "smplr";
 
 const bad_voices = ["agogo", "applause", "bird_tweet", "brass_section", "choir_aahs", "church_organ",
@@ -32,11 +33,11 @@ export class TrainingVoices {
     static voiceListeners : (()=>void)[] = [];
 
     static getAllGoodVoices() {
-        return [...good_voices];
+        return [...good_voices, ...Object.keys(NBN_CUSTOM_FONTS)];
     }
 
     static getAllVoices() {
-        return [...smplr_voices];
+        return [...smplr_voices, ...Object.keys(NBN_CUSTOM_FONTS)];
     }
 
     static getRandomGoodVoice() {
@@ -51,5 +52,17 @@ export class TrainingVoices {
 
     static onVoicesUpdated(callback : ()=>void) {
         this.voiceListeners.push(callback);
+    }
+
+    static getInstrumentConfig(instrumentName : string) {
+        if (instrumentName in NBN_CUSTOM_FONTS) {
+            return {
+                instrumentUrl: NBN_CUSTOM_FONTS[instrumentName]
+            }
+        }
+
+        return {
+            instrument: instrumentName
+        }
     }
 }
