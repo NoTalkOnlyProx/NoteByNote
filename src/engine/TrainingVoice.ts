@@ -39,11 +39,15 @@ export class TrainingVoice {
     activeNotes : Map<number, VoiceNote>;
     sfz : Soundfont | null;
     instrument : string;
+    volume : number;
+    volumeAdjustment : number;
     constructor(session : TrainingSession) {
         this.session = session;
         this.activeNotes = new Map<number, VoiceNote>();
         this.sfz = null;
         this.instrument = "";
+        this.volume = 50;
+        this.volumeAdjustment = 1.0;
     }
 
     static getRandomGoodVoice() {
@@ -147,5 +151,20 @@ export class TrainingVoice {
         if (this.session.ctx) {
             this.sfz = await new Soundfont(this.session.ctx, {instrument}).load;
         }
+    }
+
+    setVolume(volume : number) {
+        this.volume = volume;
+        this.updateOutputVolume();
+    }
+
+    setVolumeAdjustment(adjust : number) {
+        this.volumeAdjustment = adjust;
+        this.updateOutputVolume();
+    }
+
+    updateOutputVolume() {
+        console.log(this.volume/50 * this.volumeAdjustment * 127);
+        this.sfz?.output.setVolume(this.volume/50 * this.volumeAdjustment * 127);
     }
 }

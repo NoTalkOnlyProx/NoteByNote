@@ -6,6 +6,8 @@
     let chord = new Set();
     let keyboard;
     const dispatch = createEventDispatcher();
+    let volume : number = 50;
+    $: onVolumeChange(volume);
 
     export async function reset() {
         keyboard.reset();
@@ -23,6 +25,10 @@
         await playChord();
         dispatch("change",  Array.from(chord).sort((a, b) => a - b));
     }
+    async function onVolumeChange(volume) {
+        sess.guessVoice.setVolume(volume);
+        sess.playgroundVoice.setVolume(volume);
+    }
 
     export async function playChord() {
         await sess.activate();
@@ -34,7 +40,10 @@
 <div>
     <Keyboard bind:this={keyboard} toggle="true" octaves={4} on:noteon={onNoteOn} on:noteoff={onNoteOff} />
     <div class="bflow">
-        <button on:click={()=>{playChord();}} class="play">Play Guess</button>
+        <div class="hflow">
+            <input class="volume" type="range" min="0" max="100" bind:value={volume}/>
+            <button on:click={()=>{playChord();}} class="play">Play Guess</button>
+        </div>
     </div>
 </div>
 
@@ -48,5 +57,16 @@
         display:flex;
         flex-direction:column;
         align-items: center;
+    }
+    .hflow {
+        height: 100%;
+        display:flex;
+        flex-direction:row;
+        align-items: center;
+    }
+    .volume {
+        writing-mode: vertical-rl;
+        direction: rtl;
+        height:100px;
     }
 </style>

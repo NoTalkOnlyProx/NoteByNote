@@ -6,6 +6,8 @@
     export let chord = [];
     let chord_internal = [];
     export let revealed;
+    let volume : number = 50;
+    $: onVolumeChange(volume);
 
     async function onNoteOn(event) {
         /* Allow interaction as an alternative playground keyboard */
@@ -15,6 +17,9 @@
     async function onNoteOff(event) {
         /* Allow interaction as an alternative playground keyboard */
         await sess.playgroundVoice.stopNote(event.detail - 60);
+    }
+    async function onVolumeChange(volume) {
+        await sess.challengeVoice.setVolume(volume);
     }
 
     export async function playChord() {
@@ -32,8 +37,12 @@
 
 <div>
     <div class="bflow">
-        <button on:click={()=>{playChord();}} class="play">Play Challenge</button>
+        <div class="hflow">
+            <input class="volume" type="range" min="0" max="100" bind:value={volume}/>
+            <button on:click={()=>{playChord();}} class="play">Play Challenge</button>
+        </div>
     </div>
+    
     <Keyboard highlight={revealed?chord_internal:[]} octaves={4} on:noteon={onNoteOn} on:noteoff={onNoteOff} {keysPressed} />
 </div>
 
@@ -47,5 +56,16 @@
         display:flex;
         flex-direction:column;
         align-items: center;
+    }
+    .hflow {
+        height: 100%;
+        display:flex;
+        flex-direction:row;
+        align-items: center;
+    }
+    .volume {
+        writing-mode: vertical-rl;
+        direction: rtl;
+        height:100px;
     }
 </style>
