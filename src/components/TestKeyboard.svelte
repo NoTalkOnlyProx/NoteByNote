@@ -1,6 +1,7 @@
 <script lang="ts">
+    import type { TrainingSession } from "src/engine/TraningSession";
     import Keyboard from "./Keyboard.svelte";
-    let sess;
+    let sess : TrainingSession;
     export {sess as session};
     let keysPressed = [];
 

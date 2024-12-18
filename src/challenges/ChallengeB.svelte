@@ -5,7 +5,8 @@
     import {ChordGen} from "src/engine/ChordGen";
     import 'segmented-control-svelte/lightMode.css' // Optional, alternatively use darkMode.css or a custom stylesheet
     import { SegmentedControl, Segment } from 'segmented-control-svelte'
-    import {TrainingVoice} from "src/engine/TrainingVoice";
+    import { TrainingVoices } from "src/engine/TrainingVoices";
+    import VoiceSelector from "src/components/VoiceSelector.svelte";
 
     let challenge_board;
     let guess_board;
@@ -22,6 +23,45 @@
 
     let guess_inst = "";
     let challenge_inst = "";
+    $: guess_inst, challenge_inst, updateVoices();
+
+    let cancelLastUpdate : any = undefined;
+    let changingVoices = false;
+    async function updateVoices() {
+        changingVoices = true;
+        if (cancelLastUpdate) {
+            cancelLastUpdate();
+        }
+        /* Yes, this is an async promise executor.
+         * But I am using promises specifically to create a simple abort controller,
+         * so this is the cleanest way.
+         */
+        await new Promise(async (resolve : any, reject) => {
+            cancelLastUpdate = resolve;
+            await new Promise(sleep_res => setTimeout(sleep_res, 100));
+            if (cancelLastUpdate == resolve) {
+                /* No longer possible to cancel */
+                cancelLastUpdate = undefined;
+                await updateVoicesImmediate();
+                changingVoices = false;
+                resolve();
+            }
+        });
+    }
+
+    async function updateVoicesImmediate() {
+        await sess.setChallengeInstrument(challenge_inst);
+        await sess.setUserInstrument(guess_inst);
+    }
+
+    function restoreVoices() {
+        if (challenge_inst == "") {
+            challenge_inst = sess.challengeVoice.instrument;
+        }
+        if (guess_inst == "") {
+            guess_inst = sess.guessVoice.instrument;
+        }
+    }
 
     async function generateChallenge() {
         await sess.activate();
@@ -51,10 +91,8 @@
 
     async function randomizeVoices() {
         await sess.activate();
-        challenge_inst = TrainingVoice.getRandomGoodVoice();
-        guess_inst = TrainingVoice.getRandomGoodVoice();
-        await sess.setChallengeInstrument(challenge_inst);
-        await sess.setUserInstrument(guess_inst);
+        challenge_inst = TrainingVoices.getRandomGoodVoice();
+        guess_inst = TrainingVoices.getRandomGoodVoice();
     }
 
     async function sameVoices() {
@@ -141,8 +179,8 @@
         <div class="section" id="info">
             <div>Challenge {challenge_n}</div>
             <div>{validated?"Correct!":"Wrong"}</div>
-            <div>Challenge Voice: {challenge_inst}</div>
-            <div>User Voice: {guess_inst}</div>
+            <div>Challenge Voice: <VoiceSelector bind:value={challenge_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
+            <div>User Voice: <VoiceSelector bind:value={guess_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
             {#if revealed}
                 <div>Answer: {chord}</div>
                 <div>Yours: {guess_chord}</div>

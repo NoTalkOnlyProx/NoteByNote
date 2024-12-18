@@ -24,8 +24,6 @@ export class TrainingSession {
 
         /* For now, 12EDO is the only supported tuning */
         this.tuning = ED2_12_TUNING;
-
-        console.log(this, getSoundfontNames());
     }
     async activate() {
         if (this.ctx) {
@@ -45,12 +43,6 @@ export class TrainingSession {
         await this.challengeVoice.setInstrument(instrument);
     }
 
-    getRandomInstrument() {
-
-    }
-    getRandomChord() {
-
-    }
     randomizeOffset()
     {
     }

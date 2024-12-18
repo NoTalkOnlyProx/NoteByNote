@@ -1,34 +1,6 @@
-/*
-
-bad:
-agogo, applause, bird_tweet, brass_section, choir_aahs, church_organ, fx_*,
-guitar_fret_noise, guitar_harmonics,  gunshot, helicopter, lead_5_charang,
-lead_6_voice, lead_7_fifths, melodic_tom, orchestra_hit, pad_1_new_age,
-pad_2_warm, pad_4_choir, pad_6_metallic, pad_7_halo, pad_8_sweep,
-pizzicato_strings, reed_organ, reverse_cymbal, seashore, string_ensemble_1,
-synth_choir, synth_drum, taiko_drum, telephone_ring, timpani, tubular_bells,
-woodblock
-
--2 oct: glockenspiel
-1 oct: rock_organ
-fx_*,
- */
-import {getSoundfontNames, Soundfont} from "smplr";
-import {TrainingSession} from "src/engine/TraningSession";
-
-
-const bad_voices = ["agogo", "applause", "bird_tweet", "brass_section", "choir_aahs", "church_organ",
-    "guitar_fret_noise", "guitar_harmonics",  "gunshot", "helicopter", "lead_5_charang",
-    "lead_6_voice", "lead_7_fifths", "melodic_tom", "orchestra_hit", "pad_1_new_age",
-    "pad_2_warm", "pad_4_choir", "pad_6_metallic", "pad_7_halo", "pad_8_sweep",
-    "pizzicato_strings", "reed_organ", "reverse_cymbal", "seashore", "string_ensemble_1",
-    "synth_choir", "synth_drum", "taiko_drum", "telephone_ring", "timpani", "tubular_bells",
-    "woodblock", "glockenspiel", "rock_organ"];
-
-const good_voices = getSoundfontNames().filter(instrument => {
-    return !bad_voices.includes(instrument) && !instrument.startsWith("fx");
-});
-
+import { TrainingVoices } from "./TrainingVoices";
+import { TrainingSession } from "./TraningSession";
+import { Soundfont } from "smplr";
 
 type VoiceNote = {
     timer? : ReturnType<typeof setTimeout>;
@@ -49,11 +21,6 @@ export class TrainingVoice {
         this.volume = 50;
         this.volumeAdjustment = 1.0;
     }
-
-    static getRandomGoodVoice() {
-        return good_voices[Math.floor(Math.random() * good_voices.length)];
-    }
-
 
     async startMany(notes : number[], expire : number = 0) {
         for (let note of notes) {
@@ -146,6 +113,16 @@ export class TrainingVoice {
     }
 
     async setInstrument(instrument : string) {
+        /* Ignore attempts to set an invalid voice */
+        if (!TrainingVoices.supports(instrument)) {
+            return;
+        }
+
+        /* Don't waste time resetting an already-set voice */
+        if (this.instrument === instrument) {
+            return;
+        }
+
         this.instrument = instrument;
         await this.stopAll();
         if (this.session.ctx) {
