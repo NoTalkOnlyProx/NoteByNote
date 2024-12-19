@@ -4,14 +4,14 @@
     let sess : TrainingSession;
     export {sess as session};
     let keysPressed = [];
+    let note_offset = 0
 
     async function onNoteDown(event) {
         await sess.activate();
-        await sess.playgroundVoice.startNote(event.detail - 60);
-        //await sess.playgroundVoice.startMany([event.detail - 60, event.detail - 60 + 14, event.detail - 60 + 14*2, event.detail - 60 + 14*3, event.detail - 60 + 14*4]);
+        await sess.playgroundVoice.startNote(event.detail - 60 - note_offset);
     }
     async function onNoteOff(event) {
-        await sess.playgroundVoice.stopNote(event.detail - 60);
+        await sess.playgroundVoice.stopNote(event.detail - 60 - note_offset) ;
     }
 </script>
 

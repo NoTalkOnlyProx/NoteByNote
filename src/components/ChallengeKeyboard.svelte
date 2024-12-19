@@ -1,22 +1,25 @@
 <script lang="ts">
+    import type { TrainingSession } from "src/engine/TraningSession";
     import Keyboard from "./Keyboard.svelte";
-    let sess;
+    let sess : TrainingSession;
     export {sess as session};
     let keysPressed = [];
     export let chord = [];
-    let chord_internal = [];
+    let highlighted = [];
     export let revealed;
     let volume : number = 50;
     $: onVolumeChange(volume);
 
+    let note_offset : number = 0;
+
     async function onNoteOn(event) {
         /* Allow interaction as an alternative playground keyboard */
         await sess.activate();
-        await sess.playgroundVoice.startNote(event.detail - 60);
+        await sess.playgroundVoice.startNote(event.detail - 60 - note_offset);
     }
     async function onNoteOff(event) {
         /* Allow interaction as an alternative playground keyboard */
-        await sess.playgroundVoice.stopNote(event.detail - 60);
+        await sess.playgroundVoice.stopNote(event.detail - 60 - note_offset);
     }
     async function onVolumeChange(volume) {
         await sess.challengeVoice.setVolume(volume);
@@ -28,9 +31,10 @@
         await sess.challengeVoice.startMany(chord, 500);
     }
 
-    export async function setChord(nchord) {
+    export async function setChord(nchord : number[], offset : number) {
         chord = nchord;
-        chord_internal = chord.map(n => n + 60);
+        highlighted = chord.map(n => n + 60 + offset);
+        note_offset = offset;
         await playChord();
     }
 </script>
@@ -43,7 +47,7 @@
         </div>
     </div>
     
-    <Keyboard highlight={revealed?chord_internal:[]} octaves={4} on:noteon={onNoteOn} on:noteoff={onNoteOff} {keysPressed} />
+    <Keyboard highlight={revealed?highlighted:[]} octaves={4} on:noteon={onNoteOn} on:noteoff={onNoteOff} {keysPressed} />
 </div>
 
 <style>

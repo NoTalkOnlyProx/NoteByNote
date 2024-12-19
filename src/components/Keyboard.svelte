@@ -6,9 +6,6 @@
    export let highlight = [];
    export let toggle = false;
 
-
-   $: console.log(highlight);
-
    import Key from "./Key.svelte";
    let keys;
    let keyelements = [];

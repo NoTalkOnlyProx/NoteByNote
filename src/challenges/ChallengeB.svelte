@@ -10,9 +10,11 @@
     import CustomUrlSettings from "src/components/CustomURLSettings.svelte";
     import SettingsExportImport from "src/components/SettingsExportImport.svelte";
 	import { onMount, onDestroy } from 'svelte';
+    import TuningEditor from "src/components/TuningEditor.svelte";
+    import { GlobalSettings } from "src/engine/GlobalSettings";
 
-    let challenge_board;
-    let guess_board;
+    let challenge_board : ChallengeKeyboard;
+    let guess_board : GuessKeyboard;
     let challenge_n = 0;
     let auto_mode : number = 0;
     let debug_page : number = 0;
@@ -21,10 +23,10 @@
     let guess_chord = [];
     let revealed = false;
     let validated = false;
-    let num_notes;
+    let num_notes : number;
     const sess = new TrainingSession();
 
-
+    let tuning_name = "";
     let guess_inst = "";
     let challenge_inst = "";
 
@@ -33,15 +35,20 @@
 
     let load_text : string = "";
     let load_text_cb : (v:string)=>void;
+    let settings_cb : ()=>void;
 
     onMount(() => {
         load_text_cb = TrainingVoices.onUpdateLoading((text)=>{
             load_text = text;
         });
+        settings_cb = GlobalSettings.onUpdateSettings(()=>{
+            tuning_name = GlobalSettings.getActiveProfile().tuning.name;
+        });
 	});
 
     onDestroy(() => {
         TrainingVoices.clearListener(load_text_cb);
+        GlobalSettings.clearListener(settings_cb);
 	});
 
 
@@ -86,20 +93,20 @@
 
     async function generateChallenge() {
         await sess.activate();
-        chord = ChordGen.generateChord(num_notes);
+        chord = ChordGen.generateChord(num_notes, sess.tuning);
 
-        /* The generated chord always has initial note 0. Pick a random keyboard offset that keeps the chord in view. */
+        /* Pick a random keyboard offset that keeps the chord in view. */
         let maxOffset = 23 - chord[chord.length-1];
-        let minOffset = -23;
+        let minOffset = -23 - chord[0];
         let offset = Math.floor(Math.random() * (maxOffset - minOffset)) + minOffset;
-        chord = chord.map(n => n + offset);
 
         /* Randomize session parameters */
         sess.offset_sound = Math.random() * 24 - 12;
 
         /* Update Keyboards */
         guess_board.reset();
-        await challenge_board.setChord(chord);
+        guess_board.setOffset(offset);
+        await challenge_board.setChord(chord, offset);
 
         /* Challenge State */
         challenge_n += 1;
@@ -202,9 +209,10 @@
                 <Segment style="width:100px;">Challenge</Segment>
                 <Segment>Voices</Segment>
                 <Segment>Export</Segment>
+                <Segment>Tuning</Segment>
             </SegmentedControl>
             {#if debug_page==0}
-                <div>Challenge {challenge_n}</div>
+                <div>Challenge {challenge_n}. Tuning: {tuning_name}</div>
                 <div>{validated?"Correct!":"Wrong"}</div>
                 <div>
                     Challenge Voice:
@@ -235,6 +243,8 @@
                 <CustomUrlSettings></CustomUrlSettings>
             {:else if debug_page==2}
                 <SettingsExportImport></SettingsExportImport>
+            {:else if debug_page==3}
+                <TuningEditor></TuningEditor>
             {/if}
         </div>
         <div class="section"  id="controls">

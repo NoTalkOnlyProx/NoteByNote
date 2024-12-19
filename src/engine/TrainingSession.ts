@@ -1,8 +1,9 @@
 import {getSoundfontNames} from "smplr";
 import type {Tuning} from "./Tuning";
-import {ED2_12_TUNING, ED2_24_TUNING} from "./Tuning";
+import {getTuning} from "./Tuning";
 import {TrainingVoice} from "src/engine/TrainingVoice";
 import { TrainingVoices } from "./TrainingVoices";
+import { GlobalSettings } from "./GlobalSettings";
 
 /* Tracks important session data, contains important common helpers for challenge impls. */
 export class TrainingSession {
@@ -24,7 +25,10 @@ export class TrainingSession {
         this.challengeVoice =   new TrainingVoice(this, 2);
 
         /* For now, 12EDO is the only supported tuning */
-        this.tuning = ED2_12_TUNING;
+        this.tuning = GlobalSettings.getActiveProfile().tuning;
+        GlobalSettings.onUpdateSettings(()=>{
+            this.tuning = GlobalSettings.getActiveProfile().tuning;
+        });
 
         this.setUserInstrument("oboe");
         this.setChallengeInstrument("marimba");
@@ -62,6 +66,7 @@ export class TrainingSession {
 
     /* Maps note index to semitone value */
     mapNote(note : number) {
-        return this.tuning.values[note + this.tuning.neutral] + this.offset_sound + 60;
+        let res = this.tuning.values[note + this.tuning.neutral] + this.offset_sound + 60;
+        return res;
     }
 }

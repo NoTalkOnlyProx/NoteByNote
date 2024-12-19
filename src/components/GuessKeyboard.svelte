@@ -1,7 +1,8 @@
 <script lang="ts">
+    import type { TrainingSession } from "src/engine/TraningSession";
     import Keyboard from "./Keyboard.svelte";
     import {createEventDispatcher} from "svelte";
-    let sess;
+    let sess : TrainingSession;
     export {sess as session};
     let chord = new Set();
     let keyboard;
@@ -9,16 +10,18 @@
     let volume : number = 50;
     $: onVolumeChange(volume);
 
+    let note_offset : number = 0;
+
     export async function reset() {
         keyboard.reset();
     }
 
     async function onNoteOn(event) {
-        chord.add(event.detail - 60);
+        chord.add(event.detail - 60 - note_offset);
         await onChordChange();
     }
     async function onNoteOff(event) {
-        chord.delete(event.detail - 60);
+        chord.delete(event.detail - 60 - note_offset);
         await onChordChange();
     }
     async function onChordChange() {
@@ -34,6 +37,10 @@
         await sess.activate();
         await sess.guessVoice.stopAll();
         await sess.guessVoice.startMany(Array.from(chord), 500);
+    }
+
+    export function setOffset(offset : number) {
+        note_offset = offset;
     }
 </script>
 

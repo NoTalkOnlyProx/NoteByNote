@@ -41,7 +41,7 @@ export class TrainingVoice {
         }
     }
     async startNote(note : number, expire : number = 0) {
-        console.log("Starting note...", note);
+        //console.log("Starting note...", note);
         let activeNote = this.activeNotes.get(note);
         /* Start playing note if the note isn't already playing */
         if (!activeNote) {
@@ -101,7 +101,7 @@ export class TrainingVoice {
         };
 
         /* Play note */
-        console.log("Start", note, trueNote, baseNote);
+        //console.log("Start", note, trueNote, baseNote);
         await this.sfz?.start({note: baseNote, velocity:100});
 
         /* Undo hijacking */
@@ -111,7 +111,7 @@ export class TrainingVoice {
     async stopSound(note : number) {
         let trueNote = this.session.mapNote(note);
         let baseNote = Math.floor(trueNote);
-        console.log("Stop", note, trueNote, baseNote);
+        //console.log("Stop", note, trueNote, baseNote);
         await this.sfz?.stop(baseNote);
     }
 

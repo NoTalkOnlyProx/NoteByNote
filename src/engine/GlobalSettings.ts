@@ -1,11 +1,15 @@
+import { GenerateTuning, packTuning, unpackTuning, type Tuning } from "./Tuning";
+
 export interface SettingsProfile {
     name : string;
     customURLsList : {[key:string]:string};
+    tuning : Tuning;
 }
 
 export interface PackedProfile {
-    name : string;
-    urls : {[key:string]:string};
+    name?  : string;
+    urls?  : {[key:string]:string};
+    tuning?: string;
 }
 
 export type Profiles = {[key:string]:SettingsProfile};
@@ -123,7 +127,8 @@ export class GlobalSettings {
     static setEmptyProfile(pname : string = "default") : SettingsProfile {
         let profile = {
             name: pname,
-            customURLsList: {}
+            customURLsList: {},
+            tuning: GenerateTuning("12ED2", 12, 2)
         };
         this.profiles[pname] = profile;
         return profile;
@@ -174,13 +179,15 @@ export class GlobalSettings {
         let profile = this.profiles[pname];
         return {
             name: profile.name,
-            urls: profile.customURLsList
+            urls: profile.customURLsList,
+            tuning: packTuning(profile.tuning ?? GenerateTuning("12ED2", 12, 2))
         }
     }
     static unpackSettings(packed : PackedProfile) : SettingsProfile {
         return {
             name: packed.name ?? "default",
             customURLsList: packed.urls ?? {},
+            tuning: unpackTuning(packed.tuning) ?? GenerateTuning("12ED2", 12, 2)
         }
     }
 
