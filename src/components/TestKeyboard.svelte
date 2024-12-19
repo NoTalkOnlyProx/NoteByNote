@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { TrainingSession } from "src/engine/TraningSession";
+    import type { TrainingSession } from "src/engine/TrainingSession";
     import Keyboard from "./Keyboard.svelte";
     let sess : TrainingSession;
     export {sess as session};

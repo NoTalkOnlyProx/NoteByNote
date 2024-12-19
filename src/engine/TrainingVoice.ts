@@ -1,5 +1,5 @@
 import { TrainingVoices } from "./TrainingVoices";
-import { TrainingSession } from "./TraningSession";
+import { TrainingSession } from "./TrainingSession";
 import { Soundfont } from "smplr";
 import {NBN_VOLUME_ADJUSTMENTS}  from "./FontCustomizations";
 

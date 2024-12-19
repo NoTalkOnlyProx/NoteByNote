@@ -1,7 +1,7 @@
 <script lang="ts">
     import GuessKeyboard from "src/components/GuessKeyboard.svelte";
     import ChallengeKeyboard from "src/components/ChallengeKeyboard.svelte";
-    import {TrainingSession} from "src/engine/TraningSession";
+    import {TrainingSession} from "src/engine/TrainingSession";
     import {ChordGen} from "src/engine/ChordGen";
     import 'segmented-control-svelte/lightMode.css' // Optional, alternatively use darkMode.css or a custom stylesheet
     import { SegmentedControl, Segment } from 'segmented-control-svelte'
