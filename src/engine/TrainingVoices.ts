@@ -15,6 +15,7 @@ fx_*,
  */
 import {NBN_CUSTOM_FONTS} from "src/engine/FontCustomizations";
 import {getSoundfontNames as getSmplrFonts} from "smplr";
+import { GlobalSettings } from "src/engine/GlobalSettings";
 
 const bad_voices = ["agogo", "applause", "bird_tweet", "brass_section", "choir_aahs", "church_organ",
     "guitar_fret_noise", "guitar_harmonics",  "gunshot", "helicopter", "lead_5_charang",
@@ -30,14 +31,22 @@ const good_voices = smplr_voices.filter(instrument => {
 }); 
 
 export class TrainingVoices {
-    static voiceListeners : (()=>void)[] = [];
+    static voiceListeners : Set<()=>void> = new Set();
+
+    static {
+        GlobalSettings.onUpdateSettings(()=>{
+            for (let listener of this.voiceListeners) {
+                listener();
+            }
+        });
+    }
 
     static getAllGoodVoices() {
-        return [...good_voices, ...Object.keys(NBN_CUSTOM_FONTS)];
+        return [...good_voices, ...Object.keys(NBN_CUSTOM_FONTS), ...Object.keys(GlobalSettings.customURLsList)];
     }
 
     static getAllVoices() {
-        return [...smplr_voices, ...Object.keys(NBN_CUSTOM_FONTS)];
+        return [...smplr_voices, ...Object.keys(NBN_CUSTOM_FONTS), ...Object.keys(GlobalSettings.customURLsList)];
     }
 
     static getRandomGoodVoice() {
@@ -50,11 +59,22 @@ export class TrainingVoices {
         return all.includes(voice);
     }
 
-    static onVoicesUpdated(callback : ()=>void) {
-        this.voiceListeners.push(callback);
+    static onVoicesUpdated(callback : ()=>void) : ()=>void {
+        this.voiceListeners.add(callback);
+        return callback;
+    }
+
+    static clearListener(callback : ()=>void) {
+        this.voiceListeners.delete(callback);
     }
 
     static getInstrumentConfig(instrumentName : string) {
+        if (instrumentName in GlobalSettings.customURLsList) {
+            return {
+                instrumentUrl: GlobalSettings.customURLsList[instrumentName]
+            }
+        }
+
         if (instrumentName in NBN_CUSTOM_FONTS) {
             return {
                 instrumentUrl: NBN_CUSTOM_FONTS[instrumentName]

@@ -7,11 +7,14 @@
     import { SegmentedControl, Segment } from 'segmented-control-svelte'
     import { TrainingVoices } from "src/engine/TrainingVoices";
     import VoiceSelector from "src/components/VoiceSelector.svelte";
+    import CustomUrlSettings from "src/components/CustomURLSettings.svelte";
+    import SettingsExportImport from "src/components/SettingsExportImport.svelte";
 
     let challenge_board;
     let guess_board;
     let challenge_n = 0;
-    let auto_mode = 0;
+    let auto_mode : number = 0;
+    let debug_page : number = 0;
     let chord = [];
     let guess_chord_relative = [];
     let guess_chord = [];
@@ -177,15 +180,26 @@
     </div>
     <div class="foot">
         <div class="section" id="info">
-            <div>Challenge {challenge_n}</div>
-            <div>{validated?"Correct!":"Wrong"}</div>
-            <div>Challenge Voice: <VoiceSelector bind:value={challenge_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
-            <div>User Voice: <VoiceSelector bind:value={guess_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
-            {#if revealed}
-                <div>Answer: {chord}</div>
-                <div>Yours: {guess_chord}</div>
-            {:else}
-                <div>Yours: {guess_chord_relative}</div>
+            <SegmentedControl bind:selectedIndex={debug_page}>
+                <Segment style="width:100px;">Challenge</Segment>
+                <Segment>Voices</Segment>
+                <Segment>Export</Segment>
+            </SegmentedControl>
+            {#if debug_page==0}
+                <div>Challenge {challenge_n}</div>
+                <div>{validated?"Correct!":"Wrong"}</div>
+                <div>Challenge Voice: <VoiceSelector bind:value={challenge_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
+                <div>User Voice: <VoiceSelector bind:value={guess_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
+                {#if revealed}
+                    <div>Answer: {chord}</div>
+                    <div>Yours: {guess_chord}</div>
+                {:else}
+                    <div>Yours: {guess_chord_relative}</div>
+                {/if}
+            {:else if debug_page==1}
+                <CustomUrlSettings></CustomUrlSettings>
+            {:else if debug_page==2}
+                <SettingsExportImport></SettingsExportImport>
             {/if}
         </div>
         <div class="section"  id="controls">
@@ -256,5 +270,7 @@
     }
     #info {
         width: 400px;
+        display: flex; 
+        flex-flow: column;
     }
 </style>
