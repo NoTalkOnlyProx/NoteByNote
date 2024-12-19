@@ -45,11 +45,13 @@ export class TrainingVoices {
     }
 
     static getAllGoodVoices() {
-        return [...good_voices, ...Object.keys(NBN_CUSTOM_FONTS), ...Object.keys(GlobalSettings.customURLsList)];
+        let profile = GlobalSettings.getActiveProfile();
+        return [...good_voices, ...Object.keys(NBN_CUSTOM_FONTS), ...Object.keys(profile.customURLsList)];
     }
 
     static getAllVoices() {
-        return [...smplr_voices, ...Object.keys(NBN_CUSTOM_FONTS), ...Object.keys(GlobalSettings.customURLsList)];
+        let profile = GlobalSettings.getActiveProfile();
+        return [...smplr_voices, ...Object.keys(NBN_CUSTOM_FONTS), ...Object.keys(profile.customURLsList)];
     }
 
     static getRandomGoodVoice() {
@@ -149,9 +151,10 @@ export class TrainingVoices {
     }
 
     static getInstrumentConfig(instrumentName : string) {
-        if (instrumentName in GlobalSettings.customURLsList) {
+        let profile = GlobalSettings.getActiveProfile();
+        if (instrumentName in profile.customURLsList) {
             return {
-                instrumentUrl: GlobalSettings.customURLsList[instrumentName],
+                instrumentUrl: profile.customURLsList[instrumentName],
                 storage: this.voiceStorage
             }
         }

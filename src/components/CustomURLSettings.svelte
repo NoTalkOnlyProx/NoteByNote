@@ -5,7 +5,8 @@
     let cb : ()=>void;
     onMount(() => {
         cb = GlobalSettings.onUpdateSettings(()=>{
-            exportURLs(GlobalSettings.customURLsList);
+            let profile = GlobalSettings.getActiveProfile();
+            exportURLs(profile.customURLsList);
         });
 	});
 
@@ -51,12 +52,12 @@
             delete urls["font_name_example_2"];
         }
 
-        GlobalSettings.customURLsList = urls;
-
-        /* Do not count as auto-save; The user entered this manually */
+        /* Do not count as auto-save; The user requested save manually */
+        let profile = GlobalSettings.getActiveProfile();
+        profile.customURLsList = urls;
         GlobalSettings.updateSettings(false);
     }
-    exportURLs(GlobalSettings.customURLsList);
+    exportURLs(GlobalSettings.getActiveProfile().customURLsList);
     sanitize();
 </script>
 <div>Define custom voices below</div>
