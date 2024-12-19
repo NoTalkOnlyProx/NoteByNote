@@ -17,7 +17,7 @@
 </script>
 
 <span class="hidden">{value}</span>
-<input list="voices" bind:value={value} on:blur/>
+<input list="voices" bind:value={value} on:blur on:change/>
 <datalist id="voices">
     {#each voices as voice}
         <option value="{voice}">

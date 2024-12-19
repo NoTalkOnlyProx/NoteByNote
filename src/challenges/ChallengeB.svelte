@@ -9,6 +9,7 @@
     import VoiceSelector from "src/components/VoiceSelector.svelte";
     import CustomUrlSettings from "src/components/CustomURLSettings.svelte";
     import SettingsExportImport from "src/components/SettingsExportImport.svelte";
+	import { onMount, onDestroy } from 'svelte';
 
     let challenge_board;
     let guess_board;
@@ -26,10 +27,25 @@
 
     let guess_inst = "";
     let challenge_inst = "";
-    $: guess_inst, challenge_inst, updateVoices();
 
     let cancelLastUpdate : any = undefined;
     let changingVoices = false;
+
+    let load_text : string = "";
+    let load_text_cb : (v:string)=>void;
+
+    onMount(() => {
+        load_text_cb = TrainingVoices.onUpdateLoading((text)=>{
+            load_text = text;
+        });
+	});
+
+    onDestroy(() => {
+        TrainingVoices.clearListener(load_text_cb);
+	});
+
+
+    $: guess_inst, challenge_inst, updateVoices();
     async function updateVoices() {
         changingVoices = true;
         if (cancelLastUpdate) {
@@ -57,7 +73,9 @@
         await sess.setUserInstrument(guess_inst);
     }
 
-    function restoreVoices() {
+    async function restoreVoices() {
+        console.log("test");
+        await sess.activate();
         if (challenge_inst == "") {
             challenge_inst = sess.challengeVoice.instrument;
         }
@@ -188,14 +206,31 @@
             {#if debug_page==0}
                 <div>Challenge {challenge_n}</div>
                 <div>{validated?"Correct!":"Wrong"}</div>
-                <div>Challenge Voice: <VoiceSelector bind:value={challenge_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
-                <div>User Voice: <VoiceSelector bind:value={guess_inst} on:blur={restoreVoices}></VoiceSelector>{changingVoices?"(...)":""}</div>
+                <div>
+                    Challenge Voice:
+                    <VoiceSelector
+                        bind:value={challenge_inst}
+                        on:blur={restoreVoices}
+                        on:change={()=>{sess.activate()}}>
+                    </VoiceSelector>
+                    {changingVoices?"(...)":""}
+                </div>
+                <div>
+                    User Voice:
+                    <VoiceSelector
+                        bind:value={guess_inst}
+                        on:blur={restoreVoices}
+                        on:change={()=>{sess.activate()}}>
+                    </VoiceSelector>
+                    {changingVoices?"(...)":""}
+                </div>
                 {#if revealed}
                     <div>Answer: {chord}</div>
                     <div>Yours: {guess_chord}</div>
                 {:else}
                     <div>Yours: {guess_chord_relative}</div>
                 {/if}
+                <div>{load_text}</div>
             {:else if debug_page==1}
                 <CustomUrlSettings></CustomUrlSettings>
             {:else if debug_page==2}

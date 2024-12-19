@@ -14,13 +14,15 @@ export class TrainingVoice {
     instrument : string;
     volume : number;
     volumeAdjustment : number;
-    constructor(session : TrainingSession) {
+    voice : number = 0;
+    constructor(session : TrainingSession, voice : number) {
         this.session = session;
         this.activeNotes = new Map<number, VoiceNote>();
         this.sfz = null;
         this.instrument = "";
         this.volume = 50;
         this.volumeAdjustment = 1.0;
+        this.voice = voice;
     }
 
     async startMany(notes : number[], expire : number = 0) {
@@ -126,10 +128,7 @@ export class TrainingVoice {
 
         this.instrument = instrument;
         await this.stopAll();
-        if (this.session.ctx) {
-            let config = TrainingVoices.getInstrumentConfig(instrument);
-            this.sfz = await new Soundfont(this.session.ctx, config).load;
-        }
+        this.sfz = await TrainingVoices.load(instrument, this.session.ctx, this.voice);
 
         if (instrument in NBN_VOLUME_ADJUSTMENTS) {
             this.setVolumeAdjustment(NBN_VOLUME_ADJUSTMENTS[instrument]);
