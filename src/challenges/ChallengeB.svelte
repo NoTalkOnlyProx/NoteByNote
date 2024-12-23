@@ -12,6 +12,7 @@
 	import { onMount, onDestroy } from 'svelte';
     import TuningEditor from "src/components/TuningEditor.svelte";
     import { GlobalSettings } from "src/engine/GlobalSettings";
+    import CBProgramManager from "src/challenges/CBProgramManager.svelte";
 
     let challenge_board : ChallengeKeyboard;
     let guess_board : GuessKeyboard;
@@ -21,9 +22,14 @@
     let chord = [];
     let guess_chord_relative = [];
     let guess_chord = [];
+    let challenge_active : boolean = false;
     let revealed = false;
     let validated = false;
-    let num_notes : number;
+    let num_notes : number = 1;
+    let prog_manager : CBProgramManager;
+    let deadline : number = 0;
+    let timeRemaining = -1;
+    let successful = true;
     const sess = new TrainingSession();
 
     let tuning_name = "";
@@ -36,6 +42,7 @@
     let load_text : string = "";
     let load_text_cb : (v:string)=>void;
     let settings_cb : ()=>void;
+    let timer : any;
 
     onMount(() => {
         load_text_cb = TrainingVoices.onUpdateLoading((text)=>{
@@ -44,11 +51,15 @@
         settings_cb = GlobalSettings.onUpdateSettings(()=>{
             tuning_name = GlobalSettings.getActiveProfile().tuning.name;
         });
+        timer = setInterval(()=>{
+            timeRemaining = Math.ceil((deadline - Date.now())/1000);
+        });
 	});
 
     onDestroy(() => {
         TrainingVoices.clearListener(load_text_cb);
         GlobalSettings.clearListener(settings_cb);
+        clearInterval(timer);
 	});
 
 
@@ -117,6 +128,24 @@
         guess_inst = sess.guessVoice.instrument;
     }
 
+    async function startTimedTrial() {
+        console.log("Starting time trial...");
+        await sess.activate();
+        await updateVoicesImmediate();
+        generateChallenge();
+        let times = [10, 20, 40, 60, 80, 100];
+        deadline = Date.now() + (times[num_notes-1] ?? 100) * 1000;
+        successful = true;
+        challenge_active = true;
+        console.log("Started time trial");
+    }
+
+    async function stopTimedTrial() {
+        auto_mode = 0;
+        deadline = 0;
+        challenge_active = false;
+    }
+
     async function randomizeVoices() {
         await sess.activate();
         challenge_inst = TrainingVoices.getRandomGoodVoice();
@@ -135,15 +164,23 @@
 
     function checkAnswer() {
         console.log("Check answer", chord, guess_chord);
+        
         if (chord.length != guess_chord.length) {
             validated = false;
+            successful = false;
             return;
         }
         for (let i = 0; i < chord.length; i++) {
             if (chord[i] != guess_chord[i]) {
                 validated = false;
+                successful = false;
                 return;
             }
+        }
+        
+        if (challenge_active) {
+            challenge_active = false;
+            prog_manager.completeChallenge(successful && timeRemaining > 0);
         }
         validated = true;
         revealed = true;
@@ -157,6 +194,15 @@
         revealed = false;
     }
 
+    async function startTestSequence() {
+        await sess.activate();
+        for (let inst of TrainingVoices.getAllGoodVoices()) {
+            challenge_inst = inst;
+            await sess.setChallengeInstrument(challenge_inst);
+            await sess.challengeVoice.startNote(0, 2);
+            await new Promise(r => setTimeout(r, 1000));
+        }
+    }
 
 
     let count = 0;
@@ -210,6 +256,7 @@
                 <Segment>Voices</Segment>
                 <Segment>Export</Segment>
                 <Segment>Tuning</Segment>
+                <Segment>Debug</Segment>
             </SegmentedControl>
             {#if debug_page==0}
                 <div>Challenge {challenge_n}. Tuning: {tuning_name}</div>
@@ -245,6 +292,8 @@
                 <SettingsExportImport></SettingsExportImport>
             {:else if debug_page==3}
                 <TuningEditor></TuningEditor>
+            {:else if debug_page==4}
+                <button on:click={startTestSequence}>TEST SEQUENCE</button>
             {/if}
         </div>
         <div class="section"  id="controls">
@@ -265,15 +314,32 @@
                 <button on:click={async ()=>{await randomizeVoices(); await generateChallenge()}}>New Everything</button>
             </div>
             <div>
-                <button class="bigbutton" on:click={()=>{checkAnswer()}}>Validate</button>
+                <button class="bigbutton" on:click={()=>{checkAnswer()}}>
+                    Validate
+                    {#if timeRemaining > 0 && challenge_active && successful}
+                        {timeRemaining}
+                    {/if}
+                </button>
             </div>
             <div>
                 <button on:click={()=>{revealAnswer();}}>Reveal</button>
                 <button on:click={()=>{hideAnswer();}}>Hide</button>
             </div>
             <div>
-                <input type="number" bind:value={num_notes} min="0" max="10" />
-                <input type="range" bind:value={num_notes} min="0" max="10" />
+                <input type="number" bind:value={num_notes} min="1" max="10" />
+                <input type="range" bind:value={num_notes} min="1" max="10" />
+            </div>
+        </div>
+        <div class="section"  id="program">
+            <div>
+                <CBProgramManager
+                    on:trial={startTimedTrial}
+                    on:stop={stopTimedTrial}
+                    bind:gvoice={guess_inst}
+                    bind:cvoice={challenge_inst}
+                    bind:numnotes={num_notes}
+                    bind:this={prog_manager}>
+                </CBProgramManager>
             </div>
         </div>
     </div>

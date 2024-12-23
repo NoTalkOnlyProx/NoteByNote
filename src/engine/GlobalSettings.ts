@@ -1,15 +1,19 @@
+import { packPairProficiencies, unpackPairProficiencies, type PackedPairProficiencyData, type PairProficiencyData } from "./PairProficiency";
 import { GenerateTuning, packTuning, unpackTuning, type Tuning } from "./Tuning";
 
 export interface SettingsProfile {
     name : string;
     customURLsList : {[key:string]:string};
     tuning : Tuning;
+    cb_proficiency? : PairProficiencyData;
 }
+
 
 export interface PackedProfile {
     name?  : string;
     urls?  : {[key:string]:string};
     tuning?: string;
+    cb_prof?: PackedPairProficiencyData;
 }
 
 export type Profiles = {[key:string]:SettingsProfile};
@@ -177,18 +181,30 @@ export class GlobalSettings {
             return Object.keys(this.profiles).filter(pname => pname != "all").map(pname => this.packSettings(pname) as PackedProfile);
         }
         let profile = this.profiles[pname];
+        let optional : Partial<PackedProfile> = {};
+        if (profile.cb_proficiency) {
+            optional.cb_prof = packPairProficiencies(profile.cb_proficiency);
+        }
+
         return {
             name: profile.name,
             urls: profile.customURLsList,
-            tuning: packTuning(profile.tuning ?? GenerateTuning("12ED2", 12, 2))
+            tuning: packTuning(profile.tuning ?? GenerateTuning("12ED2", 12, 2)),
+            ...optional
         }
     }
     static unpackSettings(packed : PackedProfile) : SettingsProfile {
-        return {
+        let result : SettingsProfile = {
             name: packed.name ?? "default",
             customURLsList: packed.urls ?? {},
             tuning: unpackTuning(packed.tuning) ?? GenerateTuning("12ED2", 12, 2)
         }
+
+        if (packed.cb_prof) {
+            result.cb_proficiency = unpackPairProficiencies(packed.cb_prof);
+        }
+
+        return result;
     }
 
     /* Event Listeners */

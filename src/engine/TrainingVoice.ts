@@ -1,7 +1,7 @@
 import { TrainingVoices } from "./TrainingVoices";
 import { TrainingSession } from "./TrainingSession";
 import { Soundfont } from "smplr";
-import {NBN_VOLUME_ADJUSTMENTS}  from "./FontCustomizations";
+import {NBN_VOLUME_ADJUSTMENTS}  from "./VoiceData";
 
 type VoiceNote = {
     timer? : ReturnType<typeof setTimeout>;
@@ -15,6 +15,7 @@ export class TrainingVoice {
     volume : number;
     volumeAdjustment : number;
     voice : number = 0;
+    voiceRequestID : number = 0;
     constructor(session : TrainingSession, voice : number) {
         this.session = session;
         this.activeNotes = new Map<number, VoiceNote>();
@@ -125,10 +126,20 @@ export class TrainingVoice {
         if (this.instrument === instrument) {
             return;
         }
+        
+        /* This counter ensures that the most recent request wins, even if an older request
+         * completes its loading later.
+         */
+        this.voiceRequestID += 1;
+        let currentID = this.voiceRequestID;
 
         this.instrument = instrument;
         await this.stopAll();
-        this.sfz = await TrainingVoices.load(instrument, this.session.ctx, this.voice);
+        let nextsfz = await TrainingVoices.load(instrument, this.session.ctx, this.voice);
+        if (currentID != this.voiceRequestID) {
+            return;
+        }
+        this.sfz = nextsfz;
 
         if (instrument in NBN_VOLUME_ADJUSTMENTS) {
             this.setVolumeAdjustment(NBN_VOLUME_ADJUSTMENTS[instrument]);
