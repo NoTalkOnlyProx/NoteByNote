@@ -1,86 +1,79 @@
 # NoteByNote
 
-This is a simplistic (read: extremely hacky) ear trainer I put together mostly for my own purposes.
+This is a simplistic and extremely hacky ear trainer I put together mostly for my own purposes.
 
 ### [Try it yourself here](https://notalkonlyprox.github.io/NoteByNote/challenge_b.html)
 
-### Overview
-If you're here looking for good code, go away.
-Everything here is motivated by getting it done with the least amount of effort possible.
+It is designed not to rely at all on music theory, nor on any standard tuning.
+It has the following key feastures:
+- Randomized tuning offset for each challenge (to prevent reliance on perfect pitch)
+- Microtonal mode, with a few predefined tunings, a tuning generator, and the option for custom tunings
+- A focus on teaching the skills that you might use in a DAW in order to transcribe an actual musical work
+    - (you are given a guess keyboard, and the voice of this keyboard may differ from the challenge chord)
+- Built-in challenge programs with curated voice pairings to aid learning.
+- Absolutely no mention of music theory whatsoever; You are given an abstract piano keyboard (like what you would have in any DAW), and that's it.
 
-If you're looking for something based on standard music theory, I'm sorry.
-I have very strange beliefs about standard music theory.
-That is why I have created my own ear trainer, after all.
-No existing ear trainer that I know of serves my specific needs.
+### THIS TOOL HAS ANALYTICS
 
-Here is a broad description of this ear trainer:
+I have added analytics to this tool, because I am curious if people beside myself are using it.
+After some research, I have decided to use [Simple Analytics](simpleanalytics.com) due to their focus on privacy.
 
-### Challenge Type B (The only type I implemented):
+I would like to quote this one line in particular from their marketing:
+
+> We never, ever, ever store any personal data about your visitors. No cookie banners.
+
+### THE CODE IS BAD, THE UX IS BAD
+
+I am sorry, I have prioritized just adding the features I want, spending as little time as possible on code quality.
+
+This is NOT a portfolio item for me, it's just a tool that I needed made fast.
+
+The UX is similarly kinda bad. It works, and and it is ergonomic ***to me***, and that is what I care about.
+
+This does sadly mean no mobile mode for now, but I am actively thinking about the problem. TBH I just don't know how to do that without a LOT of effort. I am open to suggestions.
+
+### Instructions for Challenge Type B (The only type I implemented):
 - You may request a new challenge by clicking `New Everything`.
 - This will pick a random chord, either based on traditional music theory, or using a custom-made heuristic.
 - This chord will play, and it is your job to figure out which notes on the piano roll you must press to reproduce this chord.
 - You can select the number of notes that should be in the challenge chord.
-  - In fact, you MUST do this, because the number currently starts out undefined (whoops).
 - The piano you are using uses a DIFFERENT soundfont than the instrument 
 
+Alternatively, you may use the auto-challenge generator as follows:
+- Go to the `Challenge Programs` section and select your program.
+- Press `start`. An instrument pairing will be picked for you, and once loaded, a timer will start. Guess the chord within the time limit by pressing the `Validate` button.
 
 ### Motivations
-I created this ear trainer to help me with a specific weakness I have.
 
-As a learning musician, I often engage in the "reverse engineering" (normal musicians call this transcription) of music I like.
-I do this in the hopes that it will teach me something about what I like about the music I like. It often does.
+I really wanted an ear trainer with zero reliance on traditional music theory, in order to force myself to understand and learn music on a fundamental level.
 
-But my biggest struggle is with transcribing chords, especially when I don't have an instrument on hand that is a decent match for whatever software instrument was used by the musician in question.
+Partly, this was because I reject the theoretical underpinnings of music theory, and partly this was because I wanted to see what I could discover on my own.
 
-That is what this trainer is for.
-It is to help me learn to recreate the chords that artists I like use in my recreations of their work.
-I specifically programmed the challenge soundfont to be (most of the time) different from the user soundfont, in order to help me confront the ambiguities I often encounter when attempting to transcribe an instrument I cannot fully create.
+I could not find any such tool, so I made one -- And in the end, I did wind up discovering things!
+And this tool has proved so useful, that even now that I have decided to learn music theory, I still prefer this tool for my ear-training purposes!
 
-Additionally, for personal reasons, I am keen to avoid any kind of reliance on standard music theory. 
+### My thoughts on music theory
 
-To explain this better, consider the traditional approach to transcription:
-One usually learns what all of the most common standard chords (and their various expressions) sound like "as a whole", and then memorize the note placements require to achieve such a chord.
+Over at [OldManifesto](/OldManifesto.md) you can read up on my ***original*** thoughts about music theory.
 
-Someone using this method could theoretically ***just hear*** a `major diminished 7th chord` with root `E`, and then simply know, by rote memorization, the required note placements to produce such a chord.
+But I want to give a more nuanced take now that I am more experienced.
 
-But as I said, I am not interested in this method -- not yet, anyways. I think it will be useful eventually, especially for communicating with other musicians.
-But, at the moment, and foolish though it may be, I want to try to do things another way first.
+I fundamentally reject the theoretical assumptions that music theory is founded upon, BUT, I recognize that it is still a useful model.
 
-I want to instead learn to literally hear the individual notes in chords that are played (or at least learn how to extract them using the tools this trainer provides).
-This way, I need never actually memorize chord names. Instead, I am forced to understand how intervals just sound.
+It's a bit like newtonian mechanics, for the physicists out there -- a ***fundamentally wrong*** model, but still quite useful for everyday phenomena.
 
-I cannot force you to use this tool this way, but that is the reason you will find no note names, no chord names, no music theory whatsoever in this trainer.
-The goal is solely to "find the notes" required to reproduce a sound.
+My desire to reject music theory is born from a desire to really wrangle with music directly, and not simply acquiesce to the fundamental assumptions I find off-putting. And over the last few years, I have done this, and I have learned most of what I wanted to learn.
 
-Another quirk. I randomly detune the piano between each challenge by a non-integer amount, so do NOT expect A0 to be 440hz... basically ever.
+Meanwhile, music theory is very useful, particularly as a communication tool, so at this point I can no longer afford to ignore it if I want to successfully inter-operate with other musicians. 
 
-### Implications
-I find it interesting that some instruments, due to having simpler harmonics, can be played in a chord such that this chord sounds sonant with / very similar to a single note of another instrument with more complex harmonics.
+So I still fundamentally believe in the motivations that directed me to create this tool (and thus, I recommend it for anyone who is interested in deeply understanding music), but I also recognize that traditional music theory is an important component of any musician's learning journey as well.
 
-From a mathematical perspective, this makes sense -- there is no difference, spectrally, between a single note of a  complex sound, and a complex chord chord composed of the appropriately detuned pure sin waves.
-Except, of course, the matter of phase correlation, but that is less important for a single instrument.
+Just... keep an open, and critical mind, and try to spot, question, and verify the assumptions you may encounter.
+It is deeply rewarding to do so!
 
-So it remains a mystery to me just how our brains decide "ah, yes, this set of harmonics I am hearing is two notes of a single harmonic profile" vs. "no, this is just a single note of a more rich harmonic profile".
 
-The fact that I am sometimes tricked, when attempting to transcribe / reverse engineer chords made from complex sounds into instruments using simple sounds suggests strongly that there is even some degree to which the human brain ***cannot*** decide whether it is hearing a single complex note, or many simple ones.
 
-I think understanding the specific situations in which I (or you) find myself (or yourself) tricked may lead to a better understanding of how the human mind processes notes as a whole.
-I don't mean scientifically of course, I just mean, you (or I), might just glean some insight which could be useful when producing music.
 
-For instance, I specifically think it would be extremely interesting to create music which specifically plays with this kind of false-equivalence.
 
-Imagine a song which starts out playing fixed chords of pure sin waves in some kind of high-note-count tuning, such that the fixed chords played are at traditional 12EDO intervals, but the individual sine waves are played at microtonal intervals which are close to the intervals which occur in the actual harmonics of, say, a sawtooth.
-
-You could then slowly deviate from the fixed chord, and mess with your listener by attempting to confuse them -- was it really a single instrument they heard at first at all?
-Was it even a 12EDO song they were listening to?
-
-This is the kind of strange music I think exploring hte boundaries between overtone and harmony can expose.
-And this is why I want to develop my ear in such a way that these boundaries are maximally explored, without reliance on the usual mnemonics / namings invented by traditional theory. 
-
-### Why is this open source
-
-Entirely out of laziness. Github sites is a super easy way for me to make this available to myself on my various devices without using Webstorm.
-
-Well, mostly. Some people are curious about this bizzare training method of mine, and want to try it out, so this also allows them to do that.
 
 
