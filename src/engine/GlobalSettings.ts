@@ -21,7 +21,7 @@ export type PackedProfiles = PackedProfile[];
 
 export class GlobalSettings {
     static loaded = false;
-    static enableAutosave : boolean = localStorage.getItem("NBNAUTOSAVE") == "Y";
+    static enableAutosave : boolean = localStorage.getItem("NBNAUTOSAVE") != "N";
 
     static activeProfile : string = localStorage.getItem("NBNPROF") ?? "default";
     static profiles : Profiles = {};

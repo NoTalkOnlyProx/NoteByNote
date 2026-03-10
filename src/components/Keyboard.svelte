@@ -1,30 +1,33 @@
 <!-- This is a modified version of https://github.com/danferns/svelte-piano by Daniel Fernandes (MIT license) -->
 <script>
-   export let octaves = 2;
-   export let middleC = 60;
-   export let keysPressed = [];
-   export let highlight = [];
-   export let toggle = false;
+    let {
+        octaves = 2,
+        middleC = 60,
+        keysPressed = [],
+        highlight = [],
+        toggle = false,
+        onnoteon,
+        onnoteoff
+    } = $props();
 
    import Key from "./Key.svelte";
-   let keys;
-   let keyelements = [];
+   let keyelements = $state([]);
+
+   let keys = $derived([...Array(octaves * 12 + 1).keys()].map(
+      (i) => i + (middleC - Math.floor(octaves / 2) * 12)
+   ));
 
    export function reset() {
        for (let key of keyelements) {
            key.reset();
        }
    }
-
-   $: keys = [...Array(octaves * 12 + 1).keys()].map(
-       (i) => i + (middleC - Math.floor(octaves / 2) * 12)
-   );
 </script>
 
 <div class="keyboard">
    <div>
        {#each keys as note, i}
-           <Key bind:this={keyelements[i]} noteNum={note} {toggle} on:noteon on:noteoff highlighted={highlight.includes(note)} pressed={keysPressed.includes(note)}/>
+           <Key bind:this={keyelements[i]} noteNum={note} {toggle} highlighted={highlight.includes(note)} pressed={keysPressed.includes(note)} onnoteon={onnoteon} onnoteoff={onnoteoff}/>
        {/each}
    </div>
 </div>

@@ -16,7 +16,7 @@
     
     const example = "font_name_example: font_url\nfont_name_example_2: font_url2";
 
-    let text_raw : string = "";
+    let text_raw : string = $state("");
     function sanitize() {
         if (text_raw == "") {
             text_raw = example;
@@ -61,9 +61,9 @@
     sanitize();
 </script>
 <div>Define custom voices below</div>
-<textarea class="widetext" bind:value={text_raw} on:blur={sanitize}></textarea>
+<textarea class="widetext" bind:value={text_raw} onblur={sanitize}></textarea>
 <div class="buttons">
-    <button on:click={saveURLs}>Save</button>
+    <button onclick={saveURLs}>Save</button>
 </div>
 <style>
     .widetext {

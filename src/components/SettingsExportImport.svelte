@@ -1,13 +1,27 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
 	import { onMount, onDestroy } from 'svelte';
     import { GlobalSettings } from "src/engine/GlobalSettings";
-    let text_raw : string = "";
-    let profile_selection : string = GlobalSettings.getActiveProfile()?.name ?? "default";
-    let autosave = GlobalSettings.enableAutosave;
-    let active_prof = profile_selection;
-    let pnames : string[] = [];
-    $: onChangeText(text_raw);
-    $: onChangeSelection(profile_selection);
+    let text_raw : string = $state("");
+    
+    let initial_profile = GlobalSettings.getActiveProfile()?.name ?? "default";
+    
+    let profile_selection : string = $state(initial_profile);
+    let autosave = $state(GlobalSettings.enableAutosave);
+    let active_prof = $state(initial_profile);
+    let pnames : string[] = $state([]);
+
+    $effect(() => {
+        // Bastardized Svelte 4 -> Svelte 5 adaptation
+        text_raw;
+        untrack(()=>{onChangeText(text_raw)});
+    });
+
+    $effect(() => {
+        profile_selection;
+        // Bastardized Svelte 4 -> Svelte 5 adaptation
+        untrack(()=>{onChangeSelection(profile_selection)});
+    });
 
     let cb : ()=>void;
     onMount(() => {
@@ -22,7 +36,12 @@
 	});
 
     /* Auto-save whether auto-save is enabled */
-    $: GlobalSettings.setAutosave(autosave);
+    $effect(() => {
+        autosave;
+
+        // Bastardized Svelte 4 -> Svelte 5 adaptation
+        untrack(()=>{GlobalSettings.setAutosave(autosave)});
+    });
 
     function useProfile() {
         editSettings();
@@ -86,19 +105,19 @@
 <div>
     Settings Im/Export. Active Profile: {active_prof}
 </div>
-<textarea class="widetext" bind:value={text_raw} on:blur={onBlur}></textarea>
+<textarea class="widetext" bind:value={text_raw} onblur={onBlur}></textarea>
 <div class="buttons">
-    <input list="profiles" bind:value={profile_selection} on:blur={onBlur}/>
+    <input list="profiles" bind:value={profile_selection} onblur={onBlur}/>
     <datalist id="profiles">
         <option value="all"></option>
         {#each pnames as pname}
             <option value="{pname}"></option>
         {/each}
     </datalist>
-    <button on:click={useProfile}>Use</button>
-    <button on:click={editSettings}>Edit</button>
-    <button on:click={saveSettings}>Save</button>
-    <button on:click={deleteProfile}>Delete</button>
+    <button onclick={useProfile}>Use</button>
+    <button onclick={editSettings}>Edit</button>
+    <button onclick={saveSettings}>Save</button>
+    <button onclick={deleteProfile}>Delete</button>
 </div> 
 <div>
     <input type="checkbox"  id="autosave_enabled" bind:checked={autosave}>

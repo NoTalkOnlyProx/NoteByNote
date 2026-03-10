@@ -1,25 +1,27 @@
 <script lang="ts">
     import type { TrainingSession } from "src/engine/TraningSession";
     import Keyboard from "./Keyboard.svelte";
-    let sess : TrainingSession;
-    export {sess as session};
-    let keysPressed = [];
-    export let chord = [];
-    let highlighted = [];
-    export let revealed;
-    let volume : number = 50;
-    $: onVolumeChange(volume);
 
-    let note_offset : number = 0;
+    let {
+        chord = [],
+        revealed = undefined,
+        session: sess
+    } = $props();
 
-    async function onNoteOn(event) {
+    let keysPressed = $state([]);
+    let highlighted = $state([]);
+    let volume : number = $state(50);
+
+    let note_offset : number = $state(0);
+
+    async function onNoteOn(note) {
         /* Allow interaction as an alternative playground keyboard */
         await sess.activate();
-        await sess.playgroundVoice.startNote(event.detail - 60 - note_offset);
+        await sess.playgroundVoice.startNote(note - 60 - note_offset);
     }
-    async function onNoteOff(event) {
+    async function onNoteOff(note) {
         /* Allow interaction as an alternative playground keyboard */
-        await sess.playgroundVoice.stopNote(event.detail - 60 - note_offset);
+        await sess.playgroundVoice.stopNote(note - 60 - note_offset);
     }
     async function onVolumeChange(volume) {
         await sess.challengeVoice.setVolume(volume);
@@ -43,11 +45,11 @@
     <div class="bflow">
         <div class="hflow">
             <input class="volume" type="range" min="0" max="100" bind:value={volume}/>
-            <button on:click={()=>{playChord();}} class="play">Play Challenge</button>
+            <button onclick={()=>{playChord();}} class="play">Play Challenge</button>
         </div>
     </div>
     
-    <Keyboard highlight={revealed?highlighted:[]} octaves={4} on:noteon={onNoteOn} on:noteoff={onNoteOff} {keysPressed} />
+    <Keyboard highlight={revealed?highlighted:[]} octaves={4} onnoteon={onNoteOn} onnoteoff={onNoteOff} {keysPressed} />
 </div>
 
 <style>

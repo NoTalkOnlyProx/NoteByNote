@@ -1,28 +1,32 @@
 <!-- This is a modified version of https://github.com/danferns/svelte-piano by Daniel Fernandes (MIT license) -->
 <script>
-    export let noteNum;
-    export let keyWidth = 56;
-    export let pressed = false;
-    export let highlighted = false;
-    export let toggle = false;
+     let {
+        noteNum = undefined,
+        keyWidth = 56,
+        pressed = false,
+        highlighted = false,
+        toggle = false,
+        onnoteon,
+        onnoteoff
+    } = $props();
 
-    import { createEventDispatcher } from "svelte";
-    const dispatch = createEventDispatcher();
+    let isNatural = $derived(![1, 3, 6, 8, 10].includes(noteNum % 12));
+    let bias = $state(0);
 
-    let isNatural = ![1, 3, 6, 8, 10].includes(noteNum % 12);
-    let bias = 0;
-
-    // the accidental keys are not perfectly in center
-    if (!isNatural) {
-        if ([1, 6].includes(noteNum % 12)) bias = -keyWidth / 12;
-        else if ([3, 10].includes(noteNum % 12)) bias = keyWidth / 12;
-    }
+    $effect(()=>{
+        // the accidental keys are not perfectly in center
+        if (!isNatural) {
+            if ([1, 6].includes(noteNum % 12)) bias = -keyWidth / 12;
+            else if ([3, 10].includes(noteNum % 12)) bias = keyWidth / 12;
+        }
+    })
 
     export function reset() {
         noteOff();
     }
 
-    function keyPressed() {
+    function keyPressed(event) {
+        event?.preventDefault();
         if (!toggle) {
             noteOn();
         }
@@ -35,25 +39,28 @@
         }
     }
 
-    function keyReleased() {
+    function keyReleased(event) {
+        event?.preventDefault();
         if (!toggle) {
             noteOff();
         }
     }
 
     function noteOn() {
+        console.log("noteOn", onnoteon);
         if (pressed) return;
-        dispatch("noteon", noteNum);
+        onnoteon?.(noteNum);
         pressed = true;
     }
 
     function noteOff() {
         if (!pressed) return;
-        dispatch("noteoff", noteNum);
+        onnoteoff?.(noteNum);
         pressed = false;
     }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
         class:highlighted
         class:accidental={!isNatural}
@@ -61,16 +68,16 @@
         class:pressed
         style="--width: {keyWidth - keyWidth * 0.47 * !isNatural}px; transform: translate({bias}px);"
         draggable="false"
-        on:mousedown|preventDefault={keyPressed}
-        on:mouseup|preventDefault={keyReleased}
-        on:mouseenter={(e) => {
+        onmousedown={keyPressed}
+        onmouseup={keyReleased}
+        onmouseenter={(e) => {
         if (e.buttons) keyPressed();
     }}
-        on:mouseleave={(e) => {
+        onmouseleave={(e) => {
         if (e.buttons) keyReleased();
     }}
-        on:touchstart|preventDefault={keyPressed}
-        on:touchend|preventDefault={keyReleased}
+        ontouchstart={keyPressed}
+        ontouchend={keyReleased}
 ></div>
 
 <style>

@@ -48,9 +48,7 @@ module.exports = {
         ],
     },
     resolve: {
-        alias: {
-            svelte: path.resolve('node_modules', 'svelte/src/runtime'),
-        },
+        conditionNames: ['svelte', 'browser'], 
         extensions: [".mjs", ".js", ".ts", ".svelte"],
         mainFields: ["svelte", "browser", "module", "main"],
         plugins: [

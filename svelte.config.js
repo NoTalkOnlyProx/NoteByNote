@@ -9,5 +9,5 @@ const createSveltePreprocessor = () => {
 
 module.exports = {
     preprocess: createSveltePreprocessor(),
-    createSveltePreprocessor,
+    createSveltePreprocessor
 };

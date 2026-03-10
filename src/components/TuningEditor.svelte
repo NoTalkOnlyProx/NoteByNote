@@ -1,16 +1,22 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
 	import { onMount, onDestroy } from 'svelte';
     import { GlobalSettings } from "src/engine/GlobalSettings";
     import { ALL_TUNINGS, GenerateTuning, GenerateTuningCents, getTuning, packTuning, unpackTuning, type Tuning } from 'src/engine/Tuning';
-    let load_selection : string = "current";
-    let EDN = 2;
-    let notes = 12;
-    let cents = 0;
-    let current_tuning = "idk";
-    let editing_name = "unnamed";
-    let usingCents = false;
-    $: cents = Number((Math.log2(EDN)/notes * 1200).toFixed(2));
-    $: onChangeSelection(load_selection);
+    
+    let load_selection : string = $state("current");
+    let EDN = $state(2);
+    let notes = $state(12);
+    let current_tuning = $state("idk");
+    let editing_name = $state("unnamed");
+    let usingCents = $state(false);
+
+    let cents = $derived(Number((Math.log2(EDN)/notes * 1200).toFixed(2)));
+    
+    $effect(() => {
+        load_selection;
+    	untrack(()=>{onChangeSelection(load_selection)});
+	});
 
     let cb : ()=>void;
     onMount(() => {
@@ -72,7 +78,7 @@
         usingCents = true;
     }
 
-    let tuning_raw : string = "";
+    let tuning_raw : string = $state("");
 </script>
 <div>Choose, design, or import tuning</div>
 <div class="buttons">
@@ -85,29 +91,29 @@
             <option value="{tuning.name}">{tuning.name}</option>
         {/each}
     </select>
-    <button on:click={saveTuning}>Save</button>
+    <button onclick={saveTuning}>Save</button>
 </div>
-<textarea class="widetext" bind:value={tuning_raw} on:input={onChange} on:change={onChange}></textarea>
+<textarea class="widetext" bind:value={tuning_raw} oninput={onChange} onchange={onChange}></textarea>
 <div class="buttons"  style="padding:2px;">
     <div class="buttons" class:selected={!usingCents} style="flex:1;">
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div on:click={useNotes}>Notes:</div>
-        <input type="number" bind:value={notes} on:focus={useNotes} style="width:50px"/>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div on:click={useNotes}>ED:</div>
-        <input type="number" bind:value={EDN} on:focus={useNotes} style="width:50px"/>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div onclick={useNotes}>Notes:</div>
+        <input type="number" bind:value={notes} onfocus={useNotes} style="width:50px"/>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div onclick={useNotes}>ED:</div>
+        <input type="number" bind:value={EDN} onfocus={useNotes} style="width:50px"/>
     </div>
     <div class="buttons" class:selected={usingCents} style="flex:1;">
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div on:click={useCents}>Cents:</div>
-        <input type="number" bind:value={cents}  on:focus={useCents} style="width:100px"/>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div onclick={useCents}>Cents:</div>
+        <input type="number" bind:value={cents}  onfocus={useCents} style="width:100px"/>
     </div>
 </div>
 <div class="buttons">
-    <button on:click={autoGenerate}>Generate</button>
+    <button onclick={autoGenerate}>Generate</button>
 </div>
 <style>
     .widetext {

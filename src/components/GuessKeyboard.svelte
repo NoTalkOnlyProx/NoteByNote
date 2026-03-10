@@ -1,39 +1,52 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
     import type { TrainingSession } from "src/engine/TraningSession";
     import Keyboard from "./Keyboard.svelte";
-    import {createEventDispatcher} from "svelte";
-    let sess : TrainingSession;
-    export {sess as session};
-    let chord = new Set();
-    let keyboard;
-    const dispatch = createEventDispatcher();
-    let volume : number = 50;
-    $: onVolumeChange(volume);
 
-    let note_offset : number = 0;
+    let {
+        onchange,
+        session: sess
+    } = $props();
+
+    let chord = $state(new Set());
+    let keyboard : Keyboard;
+    
+    let volume : number = $state(50);
+    
+    $effect(() => {
+        volume;
+        // Bastardized Svelte 4 -> Svelte 5 adaptation
+        untrack(()=>{onVolumeChange(volume)});
+	});
+
+    let note_offset : number = $state(0);
 
     export async function reset() {
         keyboard.reset();
     }
 
-    async function onNoteOn(event) {
-        chord.add(event.detail - 60 - note_offset);
-        await onChordChange();
+    function onNoteOn(note : number) {
+        console.log("onNoteOn");
+        chord.add(note - 60 - note_offset);
+        onChordChange();
     }
-    async function onNoteOff(event) {
-        chord.delete(event.detail - 60 - note_offset);
-        await onChordChange();
+    function onNoteOff(note : number) {
+        console.log("onNoteOff");
+        chord.delete(note - 60 - note_offset);
+        onChordChange();
     }
     async function onChordChange() {
         await playChord();
-        dispatch("change",  Array.from(chord).sort((a, b) => a - b));
+        onchange?.(Array.from(chord).sort((a, b) => (a as number) - (b as number)));
     }
-    async function onVolumeChange(volume) {
-        sess.guessVoice.setVolume(volume);
-        sess.playgroundVoice.setVolume(volume);
+    async function onVolumeChange(volume : number) {
+        console.log("ovc", sess);
+        sess?.guessVoice.setVolume(volume);
+        sess?.playgroundVoice.setVolume(volume);
     }
 
     export async function playChord() {
+        console.log("playChord?", chord);
         await sess.activate();
         await sess.guessVoice.stopAll();
         await sess.guessVoice.startMany(Array.from(chord), 500);
@@ -45,11 +58,11 @@
 </script>
 
 <div>
-    <Keyboard bind:this={keyboard} toggle="true" octaves={4} on:noteon={onNoteOn} on:noteoff={onNoteOff} />
+    <Keyboard bind:this={keyboard} toggle="true" octaves={4} onnoteon={onNoteOn} onnoteoff={onNoteOff} />
     <div class="bflow">
         <div class="hflow">
             <input class="volume" type="range" min="0" max="100" bind:value={volume}/>
-            <button on:click={()=>{playChord();}} class="play">Play Guess</button>
+            <button onclick={()=>{playChord();}} class="play">Play Guess</button>
         </div>
     </div>
 </div>

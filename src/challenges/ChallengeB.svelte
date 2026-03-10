@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
     import GuessKeyboard from "src/components/GuessKeyboard.svelte";
     import ChallengeKeyboard from "src/components/ChallengeKeyboard.svelte";
     import {TrainingSession} from "src/engine/TrainingSession";
@@ -16,30 +17,30 @@
 
     let challenge_board : ChallengeKeyboard;
     let guess_board : GuessKeyboard;
-    let challenge_n = 0;
-    let auto_mode : number = 0;
-    let debug_page : number = 0;
-    let chord = [];
-    let guess_chord_relative = [];
-    let guess_chord = [];
-    let challenge_active : boolean = false;
-    let revealed = false;
-    let validated = false;
-    let num_notes : number = 1;
+    let challenge_n =  $state(0);
+    let auto_mode : number =  $state(0);
+    let debug_page : number = $state(0);
+    let chord =  $state([]);
+    let guess_chord_relative : number[] = $state([]);
+    let guess_chord : number[] =  $state([]);
+    let challenge_active : boolean = $state(false);
+    let revealed = $state(false);
+    let validated = $state(false);
+    let num_notes : number = $state(1);
     let prog_manager : CBProgramManager;
-    let deadline : number = 0;
-    let timeRemaining = -1;
-    let successful = true;
+    let deadline : number = $state(0);
+    let timeRemaining = $state(-1);
+    let successful = $state(true);
     const sess = new TrainingSession();
 
-    let tuning_name = "";
-    let guess_inst = "";
-    let challenge_inst = "";
+    let tuning_name = $state("");
+    let guess_inst = $state("");
+    let challenge_inst = $state("");
 
     let cancelLastUpdate : any = undefined;
-    let changingVoices = false;
+    let changingVoices = $state(false);
 
-    let load_text : string = "";
+    let load_text : string = $state("");
     let load_text_cb : (v:string)=>void;
     let settings_cb : ()=>void;
     let timer : any;
@@ -62,8 +63,14 @@
         clearInterval(timer);
 	});
 
+    $effect(() => {
+		guess_inst;
+        challenge_inst;
 
-    $: guess_inst, challenge_inst, updateVoices();
+        // Bastardized Svelte 4 -> Svelte 5 adaptation
+        untrack(()=>{updateVoices()});
+	});
+    
     async function updateVoices() {
         changingVoices = true;
         if (cancelLastUpdate) {
@@ -157,8 +164,8 @@
         await sess.setUserInstrument(guess_inst);
     }
 
-    function onGuessChange(event) {
-        guess_chord = event.detail;
+    function onGuessChange(chord : number[]) {
+        guess_chord = chord;
         guess_chord_relative = guess_chord.map(n => n - guess_chord[0]);
     }
 
@@ -205,7 +212,7 @@
     }
 
 
-    let count = 0;
+    let count = $state(0);
     setInterval(()=>{
         count++;
         if (auto_mode == 0) {
@@ -236,7 +243,6 @@
             return;
         }
     }, 250);
-    //<button on:click={()=>{dispatch("confirm");}} class="confirm">Confirm</button>
 </script>
 
 
@@ -244,7 +250,7 @@
     <div class="challenge">
         <ChallengeKeyboard bind:this={challenge_board} session={sess} {revealed}></ChallengeKeyboard>
         <GuessKeyboard
-                on:change={onGuessChange}
+                onchange={onGuessChange}
                 bind:this={guess_board}
                 session={sess}>
         </GuessKeyboard>
@@ -265,8 +271,8 @@
                     Challenge Voice:
                     <VoiceSelector
                         bind:value={challenge_inst}
-                        on:blur={restoreVoices}
-                        on:change={()=>{sess.activate()}}>
+                        onblur={restoreVoices}
+                        onchange={()=>{sess.activate()}}>
                     </VoiceSelector>
                     {changingVoices?"(...)":""}
                 </div>
@@ -274,8 +280,8 @@
                     User Voice:
                     <VoiceSelector
                         bind:value={guess_inst}
-                        on:blur={restoreVoices}
-                        on:change={()=>{sess.activate()}}>
+                        onblur={restoreVoices}
+                        onchange={()=>{sess.activate()}}>
                     </VoiceSelector>
                     {changingVoices?"(...)":""}
                 </div>
@@ -293,7 +299,7 @@
             {:else if debug_page==3}
                 <TuningEditor></TuningEditor>
             {:else if debug_page==4}
-                <button on:click={startTestSequence}>TEST SEQUENCE</button>
+                <button onclick={startTestSequence}>TEST SEQUENCE</button>
             {/if}
         </div>
         <div class="section"  id="controls">
@@ -308,13 +314,13 @@
                 </SegmentedControl>
             </div>
             <div>
-                <button on:click={()=>{generateChallenge()}}>New Challenge</button>
-                <button on:click={()=>{randomizeVoices()}}>New Voices</button>
-                <button on:click={()=>{sameVoices()}}>Same Voices</button>
-                <button on:click={async ()=>{await randomizeVoices(); await generateChallenge()}}>New Everything</button>
+                <button onclick={()=>{generateChallenge()}}>New Challenge</button>
+                <button onclick={()=>{randomizeVoices()}}>New Voices</button>
+                <button onclick={()=>{sameVoices()}}>Same Voices</button>
+                <button onclick={async ()=>{await randomizeVoices(); await generateChallenge()}}>New Everything</button>
             </div>
             <div>
-                <button class="bigbutton" on:click={()=>{checkAnswer()}}>
+                <button class="bigbutton" onclick={()=>{checkAnswer()}}>
                     Validate
                     {#if timeRemaining > 0 && challenge_active && successful}
                         {timeRemaining}
@@ -322,8 +328,8 @@
                 </button>
             </div>
             <div>
-                <button on:click={()=>{revealAnswer();}}>Reveal</button>
-                <button on:click={()=>{hideAnswer();}}>Hide</button>
+                <button onclick={()=>{revealAnswer();}}>Reveal</button>
+                <button onclick={()=>{hideAnswer();}}>Hide</button>
             </div>
             <div>
                 <input type="number" bind:value={num_notes} min="1" max="10" />
@@ -333,8 +339,8 @@
         <div class="section"  id="program">
             <div>
                 <CBProgramManager
-                    on:trial={startTimedTrial}
-                    on:stop={stopTimedTrial}
+                    ontrial={startTimedTrial}
+                    onstop={stopTimedTrial}
                     bind:gvoice={guess_inst}
                     bind:cvoice={challenge_inst}
                     bind:numnotes={num_notes}

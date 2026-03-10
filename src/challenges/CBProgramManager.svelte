@@ -1,29 +1,34 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
     import { GlobalSettings } from "src/engine/GlobalSettings";
     import { CHALLENGE_B_PROGRAMS, type CBPairing } from "./ChallengeBProgramData";
     import { ChallengeBPrograms, type PairingMap } from "./ChallengeBPrograms";
-    import { createEventDispatcher } from 'svelte';
     import { onMount, onDestroy } from 'svelte';
     import ChallengeB from "./ChallengeB.svelte";
-    export let cvoice : string = "";
-    export let gvoice : string = "";
-    export let numnotes : number = 0;
+
+    let {
+        cvoice = "",
+        gvoice = "",
+        numnotes = 0,
+        ontrial,
+        onstop
+    } = $props();
+
     const dimensions = 7;
-    let instrumentsShown : string[] = [];
-    let pmap : PairingMap = new Map();
-    let totalNeeded : number = 0;
-    let completed : number = 0;
-    let visibleChallenges : CBPairing[];
-    let program_selection = 0;
-    let update_key = 0;
-    let running = false;
-    const dispatch = createEventDispatcher();
+    let instrumentsShown : string[] = $state([]);
+    let pmap : PairingMap = $state(new Map());
+    let totalNeeded : number =  $state(0);
+    let completed : number =  $state(0);
+    let visibleChallenges : CBPairing[] = $state(undefined);
+    let program_selection = $state(0);
+    let update_key = $state(0);
+    let running = $state(false);
 
     /* cell values are temporarily held here while the user is editing them
      * we also compute colors from this table, so it must be updated when something external
      * changes the proficiency values.
      */
-    let dummies : number[] = [];
+    let dummies : number[] =  $state([]);
 
     
     let cb : ()=>void;
@@ -39,7 +44,12 @@
 
     const colors = ["#940000", "#ff3e00", "#f37d00", "#f49c00", "#f6c000", "#f7dc00", "#16ff00", "#0ff151", "#00d4ff"];
 
-    $: program_selection, recomputeProgramData();
+    $effect(() => {
+        program_selection;
+
+        // Bastardized Svelte 4 -> Svelte 5 adaptation
+        untrack(()=>{recomputeProgramData()});
+    });
 
     function recomputeProgramData() {
         let pairData = ChallengeBPrograms.computePairs(CHALLENGE_B_PROGRAMS[program_selection])!;
@@ -47,8 +57,10 @@
         let {totalMastery, totalActual} = ChallengeBPrograms.computeProgress(pairData.pairings);
         totalNeeded = totalMastery;
         completed = totalActual;
+
         instrumentsShown = ChallengeBPrograms.rankInstruments(pairData.pairings, dimensions)!;
         visibleChallenges = ChallengeBPrograms.computeVisiblePairs(pairData.pairings, dimensions)!;
+
         refresh_dummies();
         update_key+=1;
     }
@@ -135,7 +147,7 @@
         }
     }
 
-    let successCounter = 0;
+    let successCounter =  $state(0);
     export async function completeChallenge(success : boolean) {
         console.log("Completed challenge", success);
         if (!running) {
@@ -188,15 +200,13 @@
             recomputeProgramData();
             pickPair();
         }
-        
-        dispatch('trial');
+        ontrial?.();
     }
 
     function stopTrial() {     
         running = false;
-        dispatch('stop');
+        onstop?.();
     }
-
 
     function pickPair() {
         /* Pick randomly from top 10, favoring 0 */
@@ -238,7 +248,7 @@
                         class="cell"
                         class:bsel={isActive(c-1, gvoice)}
                         title="Guess: {getName(c-1)??"N/A"}"
-                        on:click={()=>selectGuess(c-1)}
+                        onclick={()=>selectGuess(c-1)}
                     >
                         {getShortName(c-1)}
                     </button>
@@ -247,7 +257,7 @@
                         <button
                             class:bsel={isActive(r-1, cvoice)}
                             title="Challenge: {getName(r-1)}"
-                            on:click={()=>selectChallenge(r-1)}
+                            onclick={()=>selectChallenge(r-1)}
                         >
                             {getShortName(r-1)}?
                         </button>
@@ -256,7 +266,7 @@
                     <input
                         class="prof cell" type="number"
                         bind:value={dummies[(r-1) + (c-1)*dimensions]}
-                        on:blur={e => setProf(r-1, c-1, toInt(e?.target?.value))}
+                        onblur={e => setProf(r-1, c-1, toInt(e?.target?.value))}
                         style="background-color:{getcolor(r-1, c-1, dummies)}"
                     />
                 {/if}
@@ -265,8 +275,8 @@
     {/key}
 </div>
 <div style="display:flex;flex-direction:row;">
-    <button class="ssbutton" on:click={onStartStop}>{running?"STOP":"START"}</button>
-    <button class="ssbutton" on:click={onReroll}>{"Reroll"}</button>
+    <button class="ssbutton" onclick={onStartStop}>{running?"STOP":"START"}</button>
+    <button class="ssbutton" onclick={onReroll}>{"Reroll"}</button>
 </div>
 <div>
     Progress: {`${completed}/${totalNeeded} (${(completed/totalNeeded * 100).toFixed(1)}%)`} Subprogress: {successCounter}
